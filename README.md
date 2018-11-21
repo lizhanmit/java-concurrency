@@ -1,9 +1,5 @@
 # Java Concurrency Note 
 
-Since version 5.0, the Java platform has also included high-level concurrency APIs.
-
----
-
 ## Processes & Threads 
 
 A process has a self-contained execution environment. Each process has its own memory space.
@@ -285,8 +281,80 @@ How to define immutable class:
   - Declare the class as `final`. 
   - Or make the constructor `private` and construct instances using factory pattern.
 - If the instance fields include references to mutable objects, **DO NOT** allow those objects to be changed. 
+  - **DO NOT** provide methods that modify the mutable objects.
+  - **DO NOT** share references to the mutable objects. **NEVER** store references to external, mutable objects passed to the constructor; if necessary, create copies, and store references to the copies. Similarly, create copies of your internal mutable objects when necessary to avoid returning the originals in your methods.
 
 Check "ImmutableRGB" example under `immutable` package. 
 
 ---
 
+## High Level Concurrency Objects
+
+Since version 5.0, the Java platform has also included high-level concurrency APIs.
+
+### Lock Objects
+
+Synchronized code relies on a simple kind of reentrant lock. This kind of lock is easy to use, but has many limitations. More sophisticated locking idioms are supported by the `java.util.concurrent.locks` package.
+
+Only one thread can own a `Lock` object at a time.
+
+`Lock` objects can be used to solve the deadlock problem.
+
+Advantages of `Lock` objects:
+
+- The `tryLock` method backs out if the lock is not available immediately or before a timeout expires (if specified). (The return value type is boolean.)
+- The `lockInterruptibly` method backs out if another thread sends an interrupt before the lock is acquired.
+
+Check "Safelock" example under `safelock` package. 
+
+### Executors
+
+In large-scale applications, it makes sense to separate thread management and creation from the rest of the application.
+
+Executors are objects that encapsulate these functions.
+
+#### Executor Interfaces 
+
+The `java.util.concurrent` package defines three executor interfaces:
+
+- `Executor`, a simple interface that supports launching new tasks.
+  - You can use `e.execute(r);` to replace `(new Thread(r)).start();`
+  - `(new Thread(r)).start();` creates a new thread and launches it immediately. 
+  - `e.execute(r);` is more likely to use an existing worker thread to run `r`, or to place `r` in a queue to wait for a worker thread to become available.
+
+- `ExecutorService`, a subinterface of Executor, which adds features that help manage the lifecycle, both of the individual tasks and of the executor itself.
+- `ScheduledExecutorService`, a subinterface of ExecutorService, supports future and/or periodic execution of tasks.
+
+#### Thread Pools
+
+Thread Pools consist of worker threads that exists separately from the `Runnable` and `Callable` tasks it executes and is often used to execute multiple tasks.
+
+Problem: 
+
+- Thread objects use a significant amount of memory. 
+- in a large-scale application, allocating and deallocating many thread objects creates a significant memory management overhead.
+
+Solution: 
+
+- Use worker threads minimizes the overhead due to thread creation.
+
+##### Fixed Thread Pool
+
+- It is a common type of thread pool, which has a specified number of threads running.
+
+- If a thread is somehow terminated while it is still in use, it is automatically replaced with a new thread.
+
+- Tasks are submitted to the pool via an internal queue.
+
+Use Case: 
+
+A web server application where each HTTP request is handled by a separate thread. 
+
+- Not using thread pool: If the application simply creates a new thread for every new HTTP request, and the system receives more requests than it can handle immediately, the application will suddenly stop responding to all requests when the overhead of all those threads exceed the capacity of the system. 
+- Using thread pool: The application will not be servicing HTTP requests as quickly as they come in, but it will be servicing them as quickly as the system can sustain.
+
+Create an executor that uses a thread pool:
+
+- Invoke `newFixedThreadPool()` factory method.
+- Invoke `newCachededThreadPool()` factory method. Suitable for applications that launch many short-lived tasks.
+- Invoke `newSingleThreadExecutor()` factory method. Executes a single task at a time.
