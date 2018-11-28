@@ -358,3 +358,59 @@ Create an executor that uses a thread pool:
 - Invoke `newFixedThreadPool()` factory method.
 - Invoke `newCachededThreadPool()` factory method. Suitable for applications that launch many short-lived tasks.
 - Invoke `newSingleThreadExecutor()` factory method. Executes a single task at a time.
+
+#### Fork/Join Framework（分而治之的思想）
+
+Goal: Use all the available processing power to enhance the performance of your application.
+
+- It is designed for work that can be broken into smaller pieces recursively. 
+- It distributes tasks to worker threads in a thread pool. 
+- Work-stealing algorithm: Worker threads that run out of things to do can steal tasks from other threads that are still busy.
+
+Example using this framework: 
+
+- In `java.util.Arrays` class, `parallelSort()` vs. `sort()`. 
+
+### Concurrent Collections 
+
+- `BlockingQueue`
+- `ConcurrentMap` 
+  - implementation: `ConcurrentHashMap`
+- `ConcurrentNavigableMap`
+  - implementation: `ConcurrentSkipListMap` - concurrent analog of `TreeMap`
+  
+These collections avoid Memory Consistency Errors by defining a happens-before relationship between an operation that adds an object to the collection and subsequent operations that access or remove that object.  
+
+### Atomic Variables
+
+The `java.util.concurrent.atomic` package defines classes that support atomic operations on single variables.
+
+A `set` has a happens-before relationship with any subsequent `get` on the same variable.
+
+(Check the above `SynchronizedCounter` class.) For a complicated class, you might want to avoid the liveness impact of unnecessary synchronization due to many synchronized methods. Here, you can replace `int` type with `AtomicInteger` type.
+
+```java
+import java.util.concurrent.atomic.AtomicInteger;
+
+class AtomicCounter {
+    private AtomicInteger c = new AtomicInteger(0);
+
+    public void increment() {
+        c.incrementAndGet();
+    }
+
+    public void decrement() {
+        c.decrementAndGet();
+    }
+
+    public int value() {
+        return c.get();
+    }
+}
+```
+
+### Concurrent Random Numbers
+
+- `ThreadLocalRandom` class can be used for applications that expect to use random numbers from multiple threads or `ForkJoinTasks`.
+- For concurrent access, using `ThreadLocalRandom` instead of `Math.random()` results in less contention and better performance.
+- For instance, `int r = ThreadLocalRandom.current().nextInt(4, 77);`.
