@@ -332,11 +332,11 @@ Thread Pools consist of worker threads that exists separately from the `Runnable
 Problem: 
 
 - Thread objects use a significant amount of memory. 
-- in a large-scale application, allocating and deallocating many thread objects creates a significant memory management overhead.
+- In a large-scale application, allocating and deallocating many thread objects creates a significant memory management overhead.
 
 Solution: 
 
-- Use worker threads minimizes the overhead due to thread creation.
+- Use worker threads minimizes the overhead caused by thread creation.
 
 ##### Fixed Thread Pool
 
