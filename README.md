@@ -167,9 +167,11 @@ public class MsLunch {
 ### Atomic Access
 
 - Reads and writes are atomic for reference variables and for most primitive variables (all types except `long` and `double`).
-- Reads and writes are atomic for all variables declared `volatile` (including `long` and `double` variables).
+- Reads and writes are atomic for all variables declared `volatile` (including `long` and `double` variables). For instance, `public volatile int count;`.
 
-Atomic actions are free from thread interference but memory consistency errors are still possible. Use `volatile` to avoid as any write to a `volatile` variable establishes a happens-before relationship with subsequent reads of that same variable. So, changes to a `volatile` variable are always visible to other thread. 
+Atomic actions are free from thread interference but memory consistency errors are still possible. Use `volatile` to avoid as any write to a `volatile` variable establishes a happens-before relationship with subsequent reads of that same variable. So, changes to a `volatile` variable are always visible to other thread.
+
+Function of `volatile`: ensure visibility of shared variables. 
 
 ---
 
