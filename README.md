@@ -171,8 +171,6 @@ public class MsLunch {
 
 Atomic actions are free from thread interference but memory consistency errors are still possible. Use `volatile` to avoid as any write to a `volatile` variable establishes a happens-before relationship with subsequent reads of that same variable. So, changes to a `volatile` variable are always visible to other thread.
 
-Function of `volatile`: ensure visibility of shared variables. 
-
 ---
 
 ## Liveness
