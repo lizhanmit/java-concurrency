@@ -1,5 +1,9 @@
 # Java Concurrency Note 
 
+Conclusion: During multithreading development, use high-level API in priority, then mid-level API (`java.util.concurrent.atomic` and `java.util.concurrent.locks`), finally low-level API (`synchronized`, `volatile`, `wait`, `notify` and `notifyAll`).
+
+[Java 并发性和多线程](https://www.cnblogs.com/android-blogs/p/5765148.html)
+
 ## Processes & Threads 
 
 A process has a self-contained execution environment. Each process has its own memory space.
@@ -8,26 +12,20 @@ To facilitate communication between processes, most operating systems support In
 
 Threads share the same process's resources, including memory and open files.
 
-
-
 Two basic ways for using `Thread` objects to create a concurrent application: 
 
 - Simply instantiate `Thread` each time the application needs to initiate an asynchronous task.
 - To abstract thread management from the rest of your application, pass the application's tasks to an executor.
 
-
-
 Life cycle of a thread:
 
-![thread-life-cycle.jpg](img/thread-life-cycle.jpg)
+![thread-life-cycle.png](img/thread-life-cycle.png)
 
 Java thread priorities: 
 
 - MIN_PRIORITY: 1
 - MAX_PRIORITY: 10
 - NORM_PRIORITY: 5 (default)
-
-
 
 Two ways to **use a thread** for your class **intendedly**:
 
@@ -77,13 +75,13 @@ You can also use `t.join(<time_millisec>)` to specify a waiting period. Similar 
 
 ## Synchronization
 
-Synchronization is used to prevent thread interference and memory consistency errors, but it will introduce thread contention including starvation and livelock.
+Synchronization is used to prevent **thread interference** and **memory consistency errors**, but it will introduce thread contention including starvation and livelock.
 
 ### Thread Interference
 
 Interference: Two different operations (e.g. add and subtract), running in different threads, but acting on the same data. 
 
-Thread interference bugs can be difficult to detect and fix because they are unpredictable, thread interference bugs can be difficult to detect and fix.
+Thread interference bugs can be difficult to detect and fix because they are unpredictable.
 
 ### Memory Consistency Errors
 
