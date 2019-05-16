@@ -4,6 +4,8 @@ Conclusion: During multithreading development, use high-level API in priority, t
 
 [Java 并发性和多线程](https://www.cnblogs.com/android-blogs/p/5765148.html)
 
+[java多线程并发](https://www.cnblogs.com/zch-lxh1314/p/7090653.html)
+
 ## Processes & Threads 
 
 A process has a self-contained execution environment. Each process has its own memory space.
@@ -12,7 +14,7 @@ To facilitate communication between processes, most operating systems support In
 
 Threads share the same process's resources, including memory and open files.
 
-Two basic ways for using `Thread` objects to create a concurrent application: 
+Two basic ways for using Thread objects to create a concurrent application: 
 
 - Simply instantiate `Thread` each time the application needs to initiate an asynchronous task.
 - To abstract thread management from the rest of your application, pass the application's tasks to an executor.
@@ -29,7 +31,7 @@ Java thread priorities:
 
 Two ways to **use a thread** for your class **intendedly**:
 
-- Have this class to implements a `Runnable` interface. And then pass the object of this class into constructor of `Thread` class when creating an object of `Thread `class. **This way is more general**.
+- Have this class to implements a `Runnable` interface. And then pass the object of this class into constructor of `Thread` class when creating an object of `Thread `class. **This way is more general.**
 
 ```java
 public class HelloRunnable implements Runnable {
@@ -58,6 +60,8 @@ public class HelloThread extends Thread {
     }
 }
 ```
+
+[JAVA多线程实现的四种方式](https://www.cnblogs.com/felixzh/p/6036074.html)
 
 ### Thread.sleep(<time_millisec>)
 
@@ -372,6 +376,9 @@ Example using this framework:
 ### Concurrent Collections 
 
 - `BlockingQueue`
+  - implementation: `ArrayBlockingQueue`, `LinkedBlockingQueue`
+- `BlockingDeque`
+  - implementation: `LinkedBlockgingDeque`
 - `ConcurrentMap` 
   - implementation: `ConcurrentHashMap`
 - `ConcurrentNavigableMap`
