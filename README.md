@@ -331,22 +331,31 @@ The `java.util.concurrent` package defines three executor interfaces:
 
 Thread Pools consist of worker threads that exists separately from the `Runnable` and `Callable` tasks it executes and is often used to execute multiple tasks.
 
-Problem: 
+Problem / Reasons to have thread pools: 
 
-- Thread objects use a significant amount of memory. 
+- A server that creates a new thread for every request would spend more time and consume more system resources in creating and destroying threads than processing actual requests.
+- Thread objects use a significant amount of memory. A JVM creating too many threads at the same time can cause the system to run out of memory. 
 - In a large-scale application, allocating and deallocating many thread objects creates a significant memory management overhead.
 
 Solution: 
 
 - Use worker threads minimizes the overhead caused by thread creation.
 
+Create an executor that uses a thread pool:
+
+- Invoke `ExecutorService pool = Executors.newFixedThreadPool(int)` factory method.
+- Invoke `Executors.newCachededThreadPool()` factory method. Creates a thread pool that creates new threads as needed, but will reuse previously constructed threads when they are available. Suitable for applications that launch many short-lived tasks.
+- Invoke `Executors.newSingleThreadExecutor()` factory method. Executes a single task at a time.
+
+Remember to close the thread pool at the end: `pool.shutdown();`.
+
 ##### Fixed Thread Pool
 
-- It is a common type of thread pool, which has a specified number of threads running.
+It is a common type of thread pool, which has a specified number of threads running.
 
-- If a thread is somehow terminated while it is still in use, it is automatically replaced with a new thread.
+If a thread is somehow terminated while it is still in use, it is automatically replaced with a new thread.
 
-- Tasks are submitted to the pool via an internal queue.
+Tasks are submitted to the pool via an internal queue. If all threads are being currently run by the executor then the pending tasks are placed in a queue and are executed when a thread becomes idle.
 
 Use Case: 
 
@@ -355,11 +364,15 @@ A web server application where each HTTP request is handled by a separate thread
 - Not using thread pool: If the application simply creates a new thread for every new HTTP request, and the system receives more requests than it can handle immediately, the application will suddenly stop responding to all requests when the overhead of all those threads exceed the capacity of the system. 
 - Using thread pool: The application will not be servicing HTTP requests as quickly as they come in, but it will be servicing them as quickly as the system can sustain.
 
-Create an executor that uses a thread pool:
+##### Risks
 
-- Invoke `newFixedThreadPool()` factory method.
-- Invoke `newCachededThreadPool()` factory method. Suitable for applications that launch many short-lived tasks.
-- Invoke `newSingleThreadExecutor()` factory method. Executes a single task at a time.
+- Deadlock: All the executing threads are waiting for the results from the blocked threads waiting in the queue due to the unavailability of threads for execution.
+- Thread Leakage: Thread Leakage occurs if a thread is removed from the pool to execute a task but not returned to it when the task completed. As an example, if the thread throws an exception and pool class does not catch this exception, then the thread will simply exit, reducing the size of the thread pool by one. If this repeats many times, then the pool would eventually become empty and no threads would be available to execute other requests.
+- Resource Thrashing: If the thread pool size is very large then time is wasted in context switching between threads. Having more threads than the optimal number may cause starvation problem leading to resource thrashing as explained.
+
+##### Tuning 
+
+On a N processor system for a queue of only computation type processes, a maximum thread pool size of N or N+1 will achieve the maximum efficiency.
 
 #### Fork/Join Framework（分而治之的思想）
 
