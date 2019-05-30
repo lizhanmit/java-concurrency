@@ -343,7 +343,7 @@ Solution:
 
 Create an executor that uses a thread pool:
 
-- Invoke `ExecutorService pool = Executors.newFixedThreadPool(int)` factory method.
+- Invoke `ExecutorService pool = Executors.newFixedThreadPool(int poolSize)` factory method.
 - Invoke `Executors.newCachededThreadPool()` factory method. Creates a thread pool that creates new threads as needed, but will reuse previously constructed threads when they are available. Suitable for applications that launch many short-lived tasks.
 - Invoke `Executors.newSingleThreadExecutor()` factory method. Executes a single task at a time.
 
