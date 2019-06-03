@@ -63,13 +63,55 @@ public class HelloThread extends Thread {
 
 [JAVA多线程实现的四种方式](https://www.cnblogs.com/felixzh/p/6036074.html)
 
-### Thread.sleep(<time_millisec>)
+### Main Thread
+
+The default priority of Main thread is 5 and for all remaining user threads priority will be inherited from parent to child.
+
+The priority of the thread (child thread) created by the Main thread will be the same as the Main thread. For example: 
+
+```java
+Thread mainThread = Thread.currentThread();  // Main thread
+mainThread.getPriority();  // 5
+mainThread.setPriority(7);
+mainThread.getPriority();  // 7
+
+Thread childThread = new Thread();
+childThread.getPriority();  // 7
+```
+
+1. Main thread is created by JVM.
+2. Main thread verifies the existence of the main() method.
+3. Main thread initializes the class with main() method. 
+
+Create a deadlock by using Main thread:
+
+```java
+Thread.currentThread().join();
+```
+
+### Prevent Thread Execution
+
+#### `yield()`
+
+Scenario: 
+
+Thread t1 is executing and completion time is 5 hours. Thread t2 is in Runnable state and completion time is 5 minutes. Thread t2 is more important. You need to prevent execution of t1.
+
+Process: 
+
+1. A thread calls `Thread.yield()`.
+2. Thread scheduler checks if there is any thread with same or high priority than this thread. 
+3. If there is any thread with higher or same priority then the scheduler will move the current thread to **Runnable** state and give processor to other thread and if not – current thread will keep executing.
+
+Main thread is always pausing its execution and giving chance to child thread (with same priority).
+
+#### `Thread.sleep(<time_millisec>)`
 
 The sleep period can be terminated by interrupts.
 
 You **CANNOT** assume that invoking `Thread.sleep(<time_millisec>)` will suspend the thread for precisely the time period specified because they are limited by the facilities provided by the underlying OS (operation system).
 
-### join() 
+#### `join()` 
 
 If `t` is a `Thread` object, `t.join();` causes the current thread to pause execution until `t`'s thread terminates. That is to say, `t` will be the upstream of the current thread. 
 
@@ -93,9 +135,7 @@ How to avoid memory consistency errors: established a **happens-before** relatio
 
 ### Synchronized Methods
 
-When one thread is executing a synchronized method for an object, all other threads that invoke synchronized methods for the same object block (suspend execution) until the first thread is done with the object.
-
-When a synchronized method exits, it automatically establishes a happens-before relationship with any subsequent invocation of a synchronized method for the same object. This guarantees that changes to the state of the object are visible to all threads.
+Happens-before relationship: When one thread is executing a synchronized method for an object, all other threads that invoke synchronized methods for the same object block (suspend execution) until the first thread is done with the object. This guarantees that changes to the state of the object are visible to all threads.
 
 **NOTE** that constructors **CANNOT** be synchronized.
 
@@ -123,7 +163,9 @@ public class SynchronizedCounter {
 
 **Every object has an intrinsic lock associated with it.**
 
-A thread that needs exclusive and consistent access to an object's fields has to acquire the object's intrinsic lock before accessing them, and then own this lock, and then release this lock when it has done with them. **As long as a thread owns an intrinsic lock, no other thread can acquire the same lock.** But a thread can acquire a lock that it already owns - **reentrant synchronization** （嵌套同步）: synchronized code invokes a method that also contains synchronized code, and both sets of code use the same lock.
+A thread that needs exclusive and consistent access to an object's fields has to acquire the object's intrinsic lock before accessing them, and then own this lock, and then release this lock when it has done with them. **As long as a thread owns an intrinsic lock, no other thread can acquire the same lock.** 
+
+**Reentrant synchronization**: But a thread can acquire a lock that it already owns -  （嵌套同步）. Synchronized code invokes a method that also contains synchronized code, and both sets of code use the same lock.
 
 When a thread invokes a synchronized method, it automatically acquires the intrinsic lock for that method's object and releases it when the method returns (including return due to exceptions).
 
@@ -165,13 +207,6 @@ public class MsLunch {
     }
 }
 ```
-
-### Atomic Access
-
-- Reads and writes are atomic for reference variables and for most primitive variables (all types except `long` and `double`).
-- Reads and writes are atomic for all variables declared `volatile` (including `long` and `double` variables). For instance, `public volatile int count;`.
-
-Atomic actions are free from thread interference but memory consistency errors are still possible. Use `volatile` to avoid as any write to a `volatile` variable establishes a happens-before relationship with subsequent reads of that same variable. So, changes to a `volatile` variable are always visible to other thread.
 
 ---
 
@@ -237,9 +272,21 @@ Livelocked threads are unable to make further progress, but the threads are not 
 
 ## Guarded Blocks
 
-"Guarded Block" is the most common idiom for threads to coordinate their actions. 
+"Guarded Block" is the most common idiom for threads to coordinate their actions.
 
-Use `Object.wait()` method to suspend the current thread. The invocation of `wait()` does not return until another thread has issued a notification that some special event may have occurred.
+### Polling 
+
+The process of testing a condition repeatedly till it becomes true. Use a loop to check whether a particular condition is true or not.
+
+Disadvantage: Waste many CPU cycles and makes the implementation inefficient.
+
+### `wait()`, `notify()`, `notifyAll()`
+
+Java uses these three method s to avoid polling.
+
+These method **must be used within a synchronized block only**.
+
+Use `Object.wait()` method to suspend the current thread. The thread releases the lock it holds. The invocation of `wait()` does not return until another thread has issued a notification that some special event may have occurred.
 
 ```java
 public synchronized void guardedJoy() {
@@ -252,7 +299,7 @@ public synchronized void guardedJoy() {
 }
 ```
 
-Use `Object.notifyAll()` method to inform all threads waiting on that lock that something important has happened. Then after this `notifyJoy()` thread has released the lock, the previous thread with `wait()` method reacquires the lock and resumes by returning from the invocation of `wait()`.
+Use `Object.notifyAll()` method to inform all threads waiting on that lock that something important has happened. **The thread does not releases the lock immediately until the synchronized block terminates.** Then after this `notifyJoy()` thread has released the lock, the previous thread with `wait()` method reacquires the lock and resumes by returning from the invocation of `wait()`. It is **advised** to use notify only at the end of your method. 
 
 ```java
 public synchronized notifyJoy() {
@@ -400,6 +447,12 @@ Example using this framework:
 These collections avoid Memory Consistency Errors by defining a happens-before relationship between an operation that adds an object to the collection and subsequent operations that access or remove that object.  
 
 ### Atomic Variables
+
+Reads and writes are atomic for reference variables and for most primitive variables (all types except `long` and `double`).
+
+Reads and writes are atomic for all variables declared `volatile` (including `long` and `double` variables). For instance, `public volatile int count;`.
+
+Atomic actions are free from thread interference but memory consistency errors are still possible. Use `volatile` to avoid as any write to a `volatile` variable establishes a happens-before relationship with subsequent reads of that same variable. So, changes to a `volatile` variable are always visible to other thread.
 
 The `java.util.concurrent.atomic` package defines classes that support atomic operations on single variables.
 
